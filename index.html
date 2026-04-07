@@ -3,32 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한자 플래시카드 - 키보드 마스터</title>
+    <title>한자 플래시카드</title>
     <script src="단어장.js"></script>
     <style>
-        :root { --primary: #4A90E2; --bg: #f5f5f5; }
+        :root { --primary: #4A90E2; --bg: #f5f5f5; --star: #f1c40f; }
         body { font-family: 'Pretendard', sans-serif; display: flex; flex-direction: column; align-items: center; background-color: var(--bg); margin: 0; padding: 20px; }
         
-        /* [메뉴 화면] */
         #menu-view { text-align: center; width: 100%; max-width: 600px; animation: fadeIn 0.3s; }
         .category-btn { 
             width: 100%; padding: 20px; margin: 10px 0; font-size: 1.2rem; cursor: pointer; 
             background-color: white; border: 2px solid transparent; border-radius: 15px; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); outline: none; transition: 0.2s;
         }
-        /* 키보드 포커스 시 시각적 효과 */
-        .category-btn:focus { border-color: var(--primary); background-color: #eef6ff; transform: scale(1.02); box-shadow: 0 0 15px rgba(74,144,226,0.3); }
+        .category-btn:focus { border-color: var(--primary); background-color: #eef6ff; transform: scale(1.02); }
+        .bookmark-menu-btn { border: 2px solid var(--star) !important; color: #d35400; font-weight: bold; }
+
+        #card-view { display: none; width: 100%; max-width: 600px; text-align: center; }
+        .card { background-color: white; padding: 40px 20px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); min-height: 380px; display: flex; flex-direction: column; justify-content: center; cursor: pointer; margin-bottom: 20px; position: relative; }
         
-        /* [카드 화면] */
-        #card-view { display: none; width: 100%; max-width: 600px; text-align: center; animation: fadeIn 0.3s; }
-        .card { background-color: white; padding: 40px 20px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); min-height: 380px; display: flex; flex-direction: column; justify-content: center; cursor: pointer; margin-bottom: 20px; }
+        /* 북마크 별표 스타일 */
+        .bookmark-btn { position: absolute; top: 20px; right: 20px; font-size: 2rem; color: #ccc; cursor: pointer; transition: 0.2s; z-index: 10; }
+        .bookmark-btn.active { color: var(--star); text-shadow: 0 0 5px rgba(241,196,15,0.5); }
+
         .kanji { font-size: 5.5rem; font-weight: bold; color: #333; }
         .hangeul { font-size: 2.5rem; color: var(--primary); margin-bottom: 15px; }
         .details { font-size: 1.15rem; line-height: 1.6; color: #555; text-align: left; padding: 0 25px; }
         .tip { margin-top: 18px; color: #d35400; font-weight: bold; border-top: 1px solid #eee; padding-top: 12px; }
         
-        /* 하단 조작계 */
-        .nav-btns button { padding: 10px 15px; font-size: 0.9rem; cursor: pointer; border-radius: 6px; border: 1px solid #ddd; background: white; margin: 2px; }
+        .nav-btns button { padding: 10px 12px; font-size: 0.85rem; cursor: pointer; border-radius: 6px; border: 1px solid #ddd; background: white; margin: 2px; }
         .jump-box { margin: 15px 0; }
         .jump-box input { width: 60px; padding: 6px; text-align: center; border: 1px solid #ddd; border-radius: 4px; }
         .control-guide { margin-top: 25px; font-size: 0.85rem; color: #777; background: #eee; padding: 10px; border-radius: 10px; width: 100%; }
@@ -39,8 +41,7 @@
 <body>
 
     <div id="menu-view">
-        <h1 style="color:#333;">학습 유형 선택</h1>
-        <p style="color:#888;">방향키(↑↓)로 선택 후 Enter를 누르세요</p>
+        <h1>학습 유형 선택</h1>
         <div id="category-buttons"></div>
     </div>
 
@@ -48,9 +49,11 @@
         <div id="progress" style="margin-bottom: 15px; font-size: 1.1rem; font-weight: bold; color: var(--primary);"></div>
         
         <div class="card" onclick="flipCard()">
+            <div id="bookmark-icon" class="bookmark-btn" onclick="toggleBookmark(event)">★</div>
+            
             <div id="card-front">
                 <div class="kanji" id="display-kanji"></div>
-                <div style="color: #bbb; margin-top:30px; font-size:0.9rem;">클릭 / Space / ↓ 키 : 정답 보기</div>
+                <div style="color: #bbb; margin-top:30px; font-size:0.8rem;">Space/상하키: 정답 | B키: 북마크</div>
             </div>
             <div id="card-back" style="display: none;">
                 <div class="hangeul" id="display-hangeul"></div>
@@ -77,9 +80,8 @@
         </div>
 
         <div class="control-guide">
-            <b>[전역]</b> 목록으로 가기: <b>ESC</b> <br>
-            <b>[목록화면]</b> 유형 선택: <b>↑, ↓</b> | 선택 완료: <b>Enter</b> <br>
-            <b>[카드화면]</b> 이동: <b>←, →</b> | 뒤집기: <b>Space, ↓, ↑</b> | 10장 이동: <b>PgUp, PgDn</b>
+            <b>[단축키]</b> 북마크 추가/해제: <b>B</b> | 목록으로: <b>ESC</b> <br>
+            이동: <b>←, →</b> | 뒤집기: <b>Space, ↑, ↓</b> | 10장 이동: <b>PgUp, PgDn</b>
         </div>
     </div>
 
@@ -87,38 +89,61 @@
         let currentCards = [];
         let currentIndex = 0;
         let isFlipped = false;
+        let bookmarkedList = JSON.parse(localStorage.getItem('hanjaBookmarks')) || [];
 
-        // 1. 초기 로드: 버튼 생성 및 포커스 설정
-        window.onload = function() {
+        window.onload = renderMenu;
+
+        // 1. 메뉴 렌더링 (북마크 모아보기 포함)
+        function renderMenu() {
             const btnContainer = document.getElementById('category-buttons');
+            btnContainer.innerHTML = '';
+            
             if (typeof flashcardsData !== 'undefined') {
-                const keys = Object.keys(flashcardsData);
-                keys.forEach((title, index) => {
+                // 일반 유형 버튼 생성
+                Object.keys(flashcardsData).forEach((title, index) => {
                     const btn = document.createElement('button');
                     btn.innerText = title;
                     btn.className = "category-btn";
-                    btn.setAttribute('tabindex', index + 1); // 탭 순서 부여
                     btn.onclick = () => startStudy(title);
                     btnContainer.appendChild(btn);
                 });
-                // 첫 번째 버튼에 자동 포커스
+
+                // 북마크가 있을 때만 '북마크 모아보기' 버튼 추가
+                if (bookmarkedList.length > 0) {
+                    const bBtn = document.createElement('button');
+                    bBtn.innerText = `⭐ 북마크 모아보기 (${bookmarkedList.length})`;
+                    bBtn.className = "category-btn bookmark-menu-btn";
+                    bBtn.onclick = startBookmarkStudy;
+                    btnContainer.appendChild(bBtn);
+                }
+                
                 if(btnContainer.firstChild) btnContainer.firstChild.focus();
             }
-        };
+        }
 
-        // 2. 학습 시작
+        // 2. 학습 시작 로직
         function startStudy(category) {
             const rawText = flashcardsData[category].trim();
             const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
+            currentCards = lines.map(line => parseLine(line));
+            initStudy();
+        }
 
-            currentCards = lines.map(line => {
-                const parts = line.split('|').map(p => p.trim());
-                return {
-                    kanji: parts[0] || "", hangeul: parts[1] || "",
-                    mean: parts[2] || "", radical: parts[3] || "", tip: parts[5] || ""
-                };
-            });
+        function startBookmarkStudy() {
+            currentCards = [...bookmarkedList];
+            initStudy();
+        }
 
+        function parseLine(line) {
+            const parts = line.split('|').map(p => p.trim());
+            return {
+                raw: line, // 북마크 저장을 위해 원본 보관
+                kanji: parts[0] || "", hangeul: parts[1] || "",
+                mean: parts[2] || "", radical: parts[3] || "", tip: parts[5] || ""
+            };
+        }
+
+        function initStudy() {
             currentIndex = 0;
             document.getElementById('total-count').innerText = currentCards.length;
             document.getElementById('menu-view').style.display = 'none';
@@ -130,14 +155,36 @@
             isFlipped = false;
             document.getElementById('card-front').style.display = 'block';
             document.getElementById('card-back').style.display = 'none';
+            
             const card = currentCards[currentIndex];
             document.getElementById('display-kanji').innerText = card.kanji;
             document.getElementById('display-hangeul').innerText = card.hangeul;
             document.getElementById('display-mean').innerText = card.mean;
             document.getElementById('display-radical').innerText = "부수: " + card.radical;
             document.getElementById('display-tip').innerText = card.tip;
+            
+            // 북마크 상태 표시
+            const isBookmarked = bookmarkedList.some(b => b.kanji === card.kanji);
+            document.getElementById('bookmark-icon').className = isBookmarked ? "bookmark-btn active" : "bookmark-btn";
+
             document.getElementById('progress').innerText = `[${currentIndex + 1} / ${currentCards.length}]`;
             document.getElementById('jump-input').value = currentIndex + 1;
+        }
+
+        // 3. 북마크 토글 기능
+        function toggleBookmark(e) {
+            if(e) e.stopPropagation(); // 카드 뒤집기 방지
+            const card = currentCards[currentIndex];
+            const foundIdx = bookmarkedList.findIndex(b => b.kanji === card.kanji);
+
+            if (foundIdx > -1) {
+                bookmarkedList.splice(foundIdx, 1);
+            } else {
+                bookmarkedList.push(card);
+            }
+
+            localStorage.setItem('hanjaBookmarks', JSON.stringify(bookmarkedList));
+            renderCard();
         }
 
         function flipCard() {
@@ -151,7 +198,6 @@
         function goToPage(idx) { currentIndex = idx; renderCard(); }
         function nextPageGroup() { currentIndex = Math.min(currentIndex + 10, currentCards.length - 1); renderCard(); }
         function prevPageGroup() { currentIndex = Math.max(currentIndex - 10, 0); renderCard(); }
-        
         function jumpToPage() {
             const target = parseInt(document.getElementById('jump-input').value) - 1;
             if (target >= 0 && target < currentCards.length) { currentIndex = target; renderCard(); }
@@ -160,44 +206,32 @@
         function showMenu() {
             document.getElementById('card-view').style.display = 'none';
             document.getElementById('menu-view').style.display = 'block';
-            // 메뉴로 돌아왔을 때 첫 버튼에 다시 포커스
-            setTimeout(() => document.querySelector('.category-btn').focus(), 50);
+            renderMenu(); // 북마크 개수 업데이트를 위해 다시 렌더링
         }
 
-        // [센스 있는 조작계] 전역 키보드 리스너
         document.addEventListener('keydown', function(e) {
             const isMenu = document.getElementById('menu-view').style.display !== 'none';
             const isCard = document.getElementById('card-view').style.display === 'block';
 
-            // 1. ESC: 어떤 상황에서도 메뉴로 탈출
             if (e.code === 'Escape') showMenu();
 
-            // 2. 메뉴 화면 조작 (방향키 상하로 버튼 선택)
             if (isMenu) {
                 const focused = document.activeElement;
-                if (e.code === 'ArrowDown') {
-                    e.preventDefault();
-                    if(focused.nextElementSibling) focused.nextElementSibling.focus();
-                } else if (e.code === 'ArrowUp') {
-                    e.preventDefault();
-                    if(focused.previousElementSibling) focused.previousElementSibling.focus();
-                }
+                if (e.code === 'ArrowDown') { e.preventDefault(); if(focused.nextElementSibling) focused.nextElementSibling.focus(); }
+                else if (e.code === 'ArrowUp') { e.preventDefault(); if(focused.previousElementSibling) focused.previousElementSibling.focus(); }
             }
 
-            // 3. 카드 화면 조작
             if (isCard) {
                 if (e.code === 'ArrowRight') nextCard();
                 else if (e.code === 'ArrowLeft') prevCard();
-                else if (e.code === 'ArrowDown' || e.code === 'ArrowUp' || e.code === 'Space') {
-                    if(document.activeElement.id !== 'jump-input') { // 입력창 입력 중에는 뒤집기 방지
-                        e.preventDefault();
-                        flipCard();
-                    }
+                else if (e.code === 'KeyB') toggleBookmark(); // B키로 북마크
+                else if (['ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) {
+                    if(document.activeElement.id !== 'jump-input') { e.preventDefault(); flipCard(); }
                 }
                 else if (e.code === 'Home') goToPage(0);
                 else if (e.code === 'End') goToPage(currentCards.length - 1);
                 else if (e.code === 'PageUp') prevPageGroup();
-                else if (event.code === 'PageDown') nextPageGroup();
+                else if (e.code === 'PageDown') nextPageGroup();
                 else if (e.code === 'Enter' && document.activeElement.id === 'jump-input') jumpToPage();
             }
         });
